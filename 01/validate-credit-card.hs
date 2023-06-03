@@ -1,5 +1,3 @@
-import Data.Text.Lazy.Read (double)
-
 -- Validating Credit Card Numbers
 -- 1. Double every second digit from the right.
 -- 2. Add the doubled and undoubled digits.
