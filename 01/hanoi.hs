@@ -6,59 +6,64 @@ another, following these two rules:
   1. you can only move one disk at a time
   2. a larger disk may never be stacked on top of a smaller one
 
-To achive this, we can use this recursive algorithm (move all disks
+To achive this, we can use this recursive algorithm (to move all disks
 from a to b):
   1. move n-1 disks from a to c using b as temporary storage
   2. move the top disk from a to b
-  3. move n-1 disks from c to b using a as temporary storage
-
-Confusing? I know. But, let's think of a, b and c as
-destinations, as in the solution bellow. -}
+  3. move n-1 disks from c to b using a as temporary storage -}
 
 type Peg = String
 
 type Move = (Peg, Peg)
 
 hanoi :: Integer -> Peg -> Peg -> Peg -> [Move]
-hanoi 0 _ _ _ = []
-hanoi 1 from to _ = [(from, to)]
-hanoi disk from to spare =
-  hanoi (disk - 1) from spare to
-    ++ [(from, to)]
-    ++ hanoi (disk - 1) spare to from
+hanoi disk src dest aux
+  | disk <= 0 = [] -- prevent usage with negative number of disks
+  | disk == 1 = [(src, dest)]
+  | otherwise =
+      hanoi (disk - 1) src aux dest
+        ++ [(src, dest)]
+        ++ hanoi (disk - 1) aux dest src
 
 {- TOWERS OF HANOI: 4 pegs
 Algorithm from https://dl.acm.org/doi/pdf/10.1145/126459.126460
 
-Given k disks (k being described in the paper above and implemented bellow) at
-the bottom of the "from" peg:
-1. Move n-k disks from a to c using the algorithm
-2. Move k disks from a to b (destination) using the 3-peg algorithm (hanoi)
-3. Move n-k disks from c to b using the algorithm
+Given a total of n disks and a subset of k disks fixed at the bottom of the
+source peg:
+  1. Move n-k disks from a (src) to c (aux1) using this algorithm
+  2. Move k disks from a (src) to b (dest) using the 3-peg algorithm (hanoi)
+  3. Move n-k disks from c (aux1) to b (dest) using the algorithm
+
+In all steps above, we use the d (aux2) peg, the new available peg, as temporary
+storage
+
+In reality k can be any random number between 1 and n-1, inclusive, but we can
+get the value that results in the fewest moves by applying the equation on the
+paper (getBestBottomSubset)
 -}
 hanoi4 :: Integer -> Peg -> Peg -> Peg -> Peg -> [Move]
-hanoi4 0 _ _ _ _ = []
-hanoi4 disks from to spare1 spare2 =
-  hanoi4 (disks - k) from spare1 spare2 to
-    ++ hanoi k from to spare2
-    ++ hanoi4 (disks - k) spare1 to spare2 from
+hanoi4 disk src dest aux1 aux2
+  | disk <= 0 = []
+  | otherwise =
+      hanoi4 (disk - k) src aux1 aux2 dest
+        ++ hanoi k src dest aux2
+        ++ hanoi4 (disk - k) aux1 dest aux2 src
   where
-    k = getK disks
+    k = findBestBottomSubset disk
 
-getK :: Integer -> Integer
-getK 1 = 1
-getK 2 = 1
-getK n = getKEquation n 1 1
+findBestBottomSubset :: Integer -> Integer
+findBestBottomSubset 1 = 1
+findBestBottomSubset n = findBestBottomSubsetEquation n 1 1
 
-getKEquation :: Integer -> Integer -> Integer -> Integer
-getKEquation n i k
+findBestBottomSubsetEquation :: Integer -> Integer -> Integer -> Integer
+findBestBottomSubsetEquation n i k
   | n == i = k
   | n < i = k - 1
-  | otherwise = getKEquation n (i + nextK) nextK
+  | otherwise = findBestBottomSubsetEquation n (i + nextK) nextK
   where
     nextK = k + 1
 
-{- This doesn't work with disks > 5. TODO: fix when I have the math knowledge.
+{- This doesn't work with disks > 5.
 hanoi4 disk from to s1 s2 = hanoi4Idea disk from to s1 s2 True True
 hanoi4Idea :: Integer -> Peg -> Peg -> Peg -> Peg -> Bool -> Bool -> [Move]
 hanoi4Idea disk from to s1 s2 next b
@@ -71,8 +76,8 @@ hanoi4Idea disk from to s1 s2 next b
     m2 = [(from, to)]
     m3 = hanoi4Idea (disk - 1) s1 to s2 from (not next) False -}
 
-hanoi42 :: Integer -> [Move]
-hanoi42 disk = hanoi4 disk "a" "b" "c" "d"
+hanoi4Test :: Integer -> [Move]
+hanoi4Test disk = hanoi4 disk "a" "b" "c" "d"
 
-hanoi2 :: Integer -> [Move]
-hanoi2 disk = hanoi disk "a" "b" "c"
+hanoiTest :: Integer -> [Move]
+hanoiTest disk = hanoi disk "a" "b" "c"
