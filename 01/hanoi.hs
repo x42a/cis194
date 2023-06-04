@@ -51,6 +51,7 @@ hanoi4 disk src dest aux1 aux2
   where
     k = findBestBottomSubset disk
 
+-- TODO: optimize setting the first 6 values 
 findBestBottomSubset :: Integer -> Integer
 findBestBottomSubset 1 = 1
 findBestBottomSubset n = findBestBottomSubsetEquation n 1 1
